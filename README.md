@@ -1,2 +1,2 @@
-# employee-tracking
-Employee Tracking - SQL
+# Employee Tracking
+Employee Tracking - SQL Application

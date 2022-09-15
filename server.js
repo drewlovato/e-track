@@ -114,47 +114,40 @@ const viewAllEmployees = () => {
 
 // View All Employees by Department Function
 const viewAllByDepartment = () => {
-  db.query(
-    `SELECT departments.name AS Departments,
-    CONCAT(employee.first_name, " ", employee.last_name) AS Employee FROM employee
-    LEFT JOIN role ON employee.role_id = role.id
-    LEFT JOIN departments ON role.departments_id = departments.id
-    ORDER BY departments, employee.last_name;`,
-    function (err, results) {
-      if (err) throw err;
-      inquirer
-        .prompt([
-          {
-            name: "depList",
-            type: "list",
-            message: "Please select a department:",
-            choices: function () {
-              let depListArry = [];
-              for (let i = 0; i < results.length; i++) {
-                depListArry.push(results[i].name);
-              }
-              return depListArry;
-            },
-          },
-        ])
-        .then(function (value) {
-          db.query(
-            "SELECT * FROM departments",
-            [value.depList],
-            function (err, results) {
-              if (err) throw err;
-              console.table(results);
-              startApplication();
+  db.query("SELECT * FROM departments", function (err, results) {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          name: "depList",
+          type: "list",
+          message: "Please select a department:",
+          choices: function () {
+            let depListArry = [];
+            for (let i = 0; i < results.length; i++) {
+              depListArry.push(results[i].name);
             }
-          );
-        });
-    }
-  );
+            return depListArry;
+          },
+        },
+      ])
+      .then(function (value) {
+        db.query(
+          "SELECT * FROM departments",
+          [value.depList],
+          function (err, results) {
+            if (err) throw err;
+            console.table(results);
+            startApplication();
+          }
+        );
+      });
+  });
 };
 
 // View All Roles Function
 const viewAllByRole = () => {
-  db.query("SELECT * FROM role", function (err, results) {
+  db.query("SELECT * FROM role,", function (err, results) {
     if (err) throw err;
     console.table(results);
     startApplication();

@@ -147,7 +147,7 @@ const viewAllByDepartment = () => {
 
 // View All Roles Function
 const viewAllByRole = () => {
-  db.query("SELECT * FROM role,", function (err, results) {
+  db.query("SELECT * FROM role", function (err, results) {
     if (err) throw err;
     console.table(results);
     startApplication();
@@ -310,7 +310,7 @@ const updating = () => {
       .prompt([
         {
           name: "update",
-          type: "list",
+          type: "input",
           choice: function () {
             let updateArry = [];
             for (let i = 0; i < results.length; i++) {
@@ -329,7 +329,7 @@ const updating = () => {
             .prompt([
               {
                 name: "role",
-                type: "list",
+                type: "input",
                 choices: function () {
                   var updateRoleArry = [];
                   for (let i = 0; i < updateRoleArry.length; i++) {

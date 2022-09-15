@@ -29,10 +29,15 @@ const db = mysql2.createConnection(
   console.log(`Connected to the employee_db database.`)
 );
 
-db.connect(function (err) {
-  if (err) throw err;
-  console.log("SQL connected");
+// Listening for localhost port
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
+
+// db.connect(function (err) {
+//   if (err) throw err;
+//   console.log("SQL connected");
+// });
 
 // Main questions for entire prompt
 const startApplication = () => {
@@ -110,9 +115,9 @@ const viewAllEmployees = () => {
 // View All Employees by Department Function
 const viewAllByDepartment = () => {
   db.query(
-    `SELECT departments.name AS Department,
+    `SELECT departments.name AS Departments,
     CONCAT(employee.first_name, " ", employee.last_name) AS Employee FROM employee
-    LEFT JOIN job ON employee.role_id = role.id
+    LEFT JOIN role ON employee.role_id = role.id
     LEFT JOIN departments ON role.departments_id = departments.id
     ORDER BY departments, employee.last_name;`,
     function (err, results) {
@@ -378,11 +383,6 @@ const updating = () => {
 // Generates 404 error
 app.use((req, res) => {
   res.status(404).end();
-});
-
-// Listening for localhost port
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
 });
 
 startApplication();

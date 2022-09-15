@@ -68,7 +68,7 @@ const startApplication = () => {
     });
 };
 
-// START OF VIEW FUNCTIONS
+// START OF "VIEW" FUNCTIONS
 const viewing = () => {
   inquirer
     .prompt([
@@ -98,7 +98,7 @@ const viewing = () => {
     });
 };
 
-// Functions to QUERY View Funtions from Database
+// View All Employees Function
 const viewAllEmployees = () => {
   db.query("SELECT * FROM employee", function (err, results) {
     if (err) throw err;
@@ -107,39 +107,47 @@ const viewAllEmployees = () => {
   });
 };
 
-// View Employee by Dept Function
+// View All Employees by Department Function
 const viewAllByDepartment = () => {
-  db.query("SELECT * FROM departments", function (err, results) {
-    if (err) throw err;
-    inquirer
-      .prompt([
-        {
-          name: "depList",
-          type: "list",
-          message: "Please select a department:",
-          choices: function () {
-            let depListArry = [];
-            for (let i = 0; i < results.length; i++) {
-              depListArry.push(results[i].name);
-            }
-            return depListArry;
+  db.query(
+    `SELECT departments.name AS Department,
+    CONCAT(employee.first_name, " ", employee.last_name) AS Employee FROM employee
+    LEFT JOIN job ON employee.role_id = role.id
+    LEFT JOIN departments ON role.departments_id = departments.id
+    ORDER BY departments, employee.last_name;`,
+    function (err, results) {
+      if (err) throw err;
+      inquirer
+        .prompt([
+          {
+            name: "depList",
+            type: "list",
+            message: "Please select a department:",
+            choices: function () {
+              let depListArry = [];
+              for (let i = 0; i < results.length; i++) {
+                depListArry.push(results[i].name);
+              }
+              return depListArry;
+            },
           },
-        },
-      ])
-      .then(function (value) {
-        db.query(
-          "SELECT * FROM departments",
-          [value.depList],
-          function (err, results) {
-            if (err) throw err;
-            console.table(results);
-            startApplication();
-          }
-        );
-      });
-  });
+        ])
+        .then(function (value) {
+          db.query(
+            "SELECT * FROM departments",
+            [value.depList],
+            function (err, results) {
+              if (err) throw err;
+              console.table(results);
+              startApplication();
+            }
+          );
+        });
+    }
+  );
 };
 
+// View All Roles Function
 const viewAllByRole = () => {
   db.query("SELECT * FROM role", function (err, results) {
     if (err) throw err;
@@ -148,7 +156,7 @@ const viewAllByRole = () => {
   });
 };
 
-// START OF ADD FUNCTIONS
+// START OF "ADDING" FUNCTIONS
 const adding = () => {
   inquirer
     .prompt([
@@ -174,7 +182,7 @@ const adding = () => {
     });
 };
 
-// Function to Add Employee to Database
+// Add New Employee Function
 const addEmployee = () => {
   db.query("SELECT * FROM role", function (err, results) {
     if (err) throw err;
@@ -221,14 +229,15 @@ const addEmployee = () => {
         db.query("INSERT INTO employee SET ?", {
           first_name: value.addEmpFirst,
           last_name: value.addEmpLast,
-          manager_id: value.manager,
+          role_id: value.manager,
         });
         console.log("You have successfully added a new employee");
+        startApplication();
       });
   });
 };
 
-// Function to Add Department to Database
+// Add New Department Function
 const addDepartment = () => {
   inquirer
     .prompt([
@@ -251,7 +260,7 @@ const addDepartment = () => {
     });
 };
 
-// Function to Add Role to Database
+// Add New Role Function
 const addRole = () => {
   inquirer
     .prompt([
@@ -293,6 +302,77 @@ const addRole = () => {
         }
       );
     });
+};
+
+// START OF "UPDATING" FUNCTIONS
+const updating = () => {
+  db.query("SELECT * FROM employee", function (err, results) {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          name: "update",
+          type: "list",
+          choice: function () {
+            let updateArry = [];
+            for (let i = 0; i < results.length; i++) {
+              updateArry.push(results[i].last_name);
+            }
+            return updateArry;
+          },
+          message: "Please choose a employee to update",
+        },
+      ])
+      .then(function (value) {
+        const saveName = value.update;
+        db.query("SELECT * FROM employee", function (err, results) {
+          if (err) throw err;
+          inquirer
+            .prompt([
+              {
+                name: "role",
+                type: "list",
+                choices: function () {
+                  var updateRoleArry = [];
+                  for (let i = 0; i < updateRoleArry.length; i++) {
+                    updateRoleArry.push(resulte[i].role_id);
+                  }
+                  return updateRoleArry;
+                },
+                message: "Please select a role title",
+              },
+              {
+                name: "manager",
+                type: "number",
+                validate: function (value) {
+                  if (isNaN(value) === false) {
+                    return true;
+                  } else {
+                    return false;
+                  }
+                },
+                message: "Please enter new Manager Id",
+                default: "1",
+              },
+            ])
+            .then(function (value) {
+              console.log(value);
+              console.log(saveName);
+              db.query(
+                "UPDATE employee SET ? WHERE last_name = ?"[
+                  ({
+                    role_id: value.role,
+                    manager_id: value.manager,
+                  },
+                  saveName)
+                ]
+              ),
+                console.log("The employee has been updated!");
+              startApplication();
+            });
+        });
+      });
+  });
 };
 
 // Generates 404 error

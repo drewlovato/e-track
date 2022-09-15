@@ -48,13 +48,13 @@ const startApplication = () => {
     .then(function (res) {
       switch (res.start) {
         case "View Employee Info":
-          viewEmp();
+          viewing();
           break;
         case "Add Employee Info":
-          addEmp();
+          adding();
           break;
         case "Update Employee Info":
-          updateEmp();
+          updating();
           break;
         case "Exit":
           console.log("You have exited the application!");
@@ -64,7 +64,7 @@ const startApplication = () => {
 };
 
 // START OF VIEW FUNCTIONS
-const viewEmp = () => {
+const viewing = () => {
   inquirer
     .prompt([
       {
@@ -102,6 +102,7 @@ const viewAllEmployees = () => {
   });
 };
 
+// View Employee by Dept Function
 const viewAllByDepartment = () => {
   db.query("SELECT * FROM departments", function (err, results) {
     if (err) throw err;
@@ -143,7 +144,7 @@ const viewAllByRole = () => {
 };
 
 // START OF ADD FUNCTIONS
-const addEmp = () => {
+const adding = () => {
   inquirer
     .prompt([
       {
@@ -204,17 +205,60 @@ const addDepartment = () => {
     .prompt([
       {
         name: "addDept",
-        type: "rawlist",
+        type: "input",
         message: "What is the name of the Department you would like to add?",
       },
     ])
     .then(function (value) {
       db.query(
-        "INSERT INTO departments VALUES",
+        "INSERT INTO departments VALUES (DEFAULT, ?)",
         [value.addDept],
         function (err) {
           if (err) throw err;
-          console.log("You have successfully submitted" + value.addDept);
+          console.log("You have successfully submitted: " + value.addDept);
+          startApplication();
+        }
+      );
+    });
+};
+
+const addRole = () => {
+  inquirer
+    .prompt([
+      {
+        name: "roleTitle",
+        type: "input",
+        message: "What is the title of the role you would like to add?",
+      },
+      {
+        name: "salary",
+        type: "number",
+        message: "What is the salary amount?",
+      },
+      {
+        name: "departments_id",
+        type: "number",
+        message: "Please enter the department id:",
+        validate: function (value) {
+          if (isNaN(value) === false) {
+            return true;
+          } else {
+            return false;
+          }
+        },
+      },
+    ])
+    .then(function (value) {
+      db.query(
+        "INSERT INTO role SET ?",
+        {
+          title: value.roleTitle,
+          salary: value.salary,
+          departments_id: value.departments_id,
+        },
+        function (err) {
+          if (err) throw err;
+          console.log("You have successfully submitted: " + value.roleTitle);
           startApplication();
         }
       );

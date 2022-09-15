@@ -70,8 +70,12 @@ const viewEmp = () => {
       {
         type: "list",
         name: "viewTracking",
-        message: "What would you like to view?",
-        choices: ["View all employees", "View by Department", "View by Role"],
+        message: "Where would you like to view from?",
+        choices: [
+          "View All Employees",
+          "View Employees by Department",
+          "View Employees by Role",
+        ],
       },
     ])
     .then(function (res) {
@@ -91,14 +95,11 @@ const viewEmp = () => {
 
 // Functions to QUERY View Funtions from Database
 const viewAllEmployees = () => {
-  db.query(
-    "SELECT employee.id AS Id, employee.first_name AS First, employee.last_name AS Last FROM employee",
-    function (err, results) {
-      if (err) throw err;
-      res.json(results);
-      startApplication();
-    }
-  );
+  db.query("SELECT * FROM employee", function (err, results) {
+    if (err) throw err;
+    console.table(results);
+    startApplication();
+  });
 };
 
 const viewAllByDepartment = () => {
@@ -107,7 +108,7 @@ const viewAllByDepartment = () => {
     inquirer
       .prompt([
         {
-          name: "viewAllByDepartmentList",
+          name: "depList",
           type: "list",
           message: "Please select a department:",
           choices: function () {
@@ -122,10 +123,10 @@ const viewAllByDepartment = () => {
       .then(function (value) {
         db.query(
           "SELECT * FROM departments",
-          [value.viewAllByDepartment],
+          [value.depList],
           function (err, results) {
             if (err) throw err;
-            res.json(results);
+            console.table(results);
             startApplication();
           }
         );
@@ -136,9 +137,88 @@ const viewAllByDepartment = () => {
 const viewAllByRole = () => {
   db.query("SELECT * FROM role", function (err, results) {
     if (err) throw err;
-    res.json(results);
+    console.table(results);
     startApplication();
   });
+};
+
+// START OF ADD FUNCTIONS
+const addEmp = () => {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "addTracking",
+        message: "Where would you like to information add to?",
+        choices: ["Add Employee", "Add Department", "Add Role"],
+      },
+    ])
+    .then(function (res) {
+      switch (res.addTracking) {
+        case "Add Employee":
+          addEmployee();
+          break;
+        case "Add Department":
+          addDepartment();
+          break;
+        case "Add Role":
+          addRole();
+          break;
+      }
+    });
+};
+
+// Function to Add to Database
+const addEmployee = () => {
+  db.query("SELECT * FROM role", function (err, results) {
+    if (err) throw err;
+    inquirer.prompt([
+      {
+        type: "input",
+        name: "addEmpFirst",
+        message: "Please add the employees first name:",
+      },
+      {
+        type: "input",
+        name: "addEmpLast",
+        message: "Please add the employees Last name:",
+      },
+      {
+        name: "role",
+        type: "rawlist",
+        message: "Please select a role:",
+        choices: function () {
+          let roleListArry = [];
+          for (let i = 0; i < results.length; i++) {
+            roleListArry.push(results[i].title);
+          }
+          return roleListArry;
+        },
+      },
+    ]);
+  });
+};
+
+const addDepartment = () => {
+  inquirer
+    .prompt([
+      {
+        name: "addDept",
+        type: "rawlist",
+        message: "What is the name of the Department you would like to add?",
+      },
+    ])
+    .then(function (value) {
+      db.query(
+        "INSERT INTO departments VALUES",
+        [value.addDept],
+        function (err) {
+          if (err) throw err;
+          console.log("You have successfully submitted" + value.addDept);
+          startApplication();
+        }
+      );
+    });
 };
 
 // GET from departments

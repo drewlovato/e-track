@@ -29,6 +29,11 @@ const db = mysql2.createConnection(
   console.log(`Connected to the employee_db database.`)
 );
 
+db.connect(function (err) {
+  if (err) throw err;
+  console.log("SQL connected");
+});
+
 // Main questions for entire prompt
 const startApplication = () => {
   inquirer
@@ -169,37 +174,61 @@ const adding = () => {
     });
 };
 
-// Function to Add to Database
+// Function to Add Employee to Database
 const addEmployee = () => {
   db.query("SELECT * FROM role", function (err, results) {
     if (err) throw err;
-    inquirer.prompt([
-      {
-        type: "input",
-        name: "addEmpFirst",
-        message: "Please add the employees first name:",
-      },
-      {
-        type: "input",
-        name: "addEmpLast",
-        message: "Please add the employees Last name:",
-      },
-      {
-        name: "role",
-        type: "rawlist",
-        message: "Please select a role:",
-        choices: function () {
-          let roleListArry = [];
-          for (let i = 0; i < results.length; i++) {
-            roleListArry.push(results[i].title);
-          }
-          return roleListArry;
+    inquirer
+      .prompt([
+        {
+          type: "input",
+          name: "addEmpFirst",
+          message: "Please add the employees first name:",
         },
-      },
-    ]);
+        {
+          type: "input",
+          name: "addEmpLast",
+          message: "Please add the employees Last name:",
+        },
+        {
+          name: "role",
+          type: "rawlist",
+          message: "Please select a role:",
+          choices: function () {
+            let roleListArry = [];
+            for (let i = 0; i < results.length; i++) {
+              roleListArry.push(results[i].title);
+            }
+            return roleListArry;
+          },
+          message: "Select a title",
+        },
+        {
+          name: "manager",
+          type: "number",
+          validate: function (value) {
+            if (isNaN(value) === false) {
+              return true;
+            } else {
+              return false;
+            }
+          },
+          message: "Enter Manager Id:",
+          default: "1",
+        },
+      ])
+      .then(function (value) {
+        db.query("INSERT INTO employee SET ?", {
+          first_name: value.addEmpFirst,
+          last_name: value.addEmpLast,
+          manager_id: value.manager,
+        });
+        console.log("You have successfully added a new employee");
+      });
   });
 };
 
+// Function to Add Department to Database
 const addDepartment = () => {
   inquirer
     .prompt([
@@ -222,6 +251,7 @@ const addDepartment = () => {
     });
 };
 
+// Function to Add Role to Database
 const addRole = () => {
   inquirer
     .prompt([
@@ -264,27 +294,6 @@ const addRole = () => {
       );
     });
 };
-
-// GET from departments
-// app.get("/api/departments", (req, res) => {
-//   db.query("SELECT * FROM departments", function (err, results) {
-//     res.json(results);
-//   });
-// });
-
-// //GET from role
-// app.get("/api/role", (req, res) => {
-//   db.query("SELECT * FROM role", function (err, results) {
-//     res.json(results);
-//   });
-// });
-
-// // GET from employee
-// app.get("/api/employee", (req, res) => {
-//   db.query("SELECT * FROM employee", function (err, results) {
-//     res.json(results);
-//   });
-// });
 
 // Generates 404 error
 app.use((req, res) => {
